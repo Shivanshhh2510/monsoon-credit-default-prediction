@@ -174,3 +174,6 @@ monsoon-credit-default-prediction/
 
 GitHub:  
 https://github.com/Shivanshhh2510
+
+Colab:
+https://colab.research.google.com/drive/1RSpLX1G9rAkD718ranHsAOfzBHOfmISO#scrollTo=cXr1A0CbDc9d
