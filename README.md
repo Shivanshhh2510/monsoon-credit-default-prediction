@@ -4,7 +4,7 @@
 
 This project predicts the probability of loan default at the time of application using historical credit bureau data.
 
-The solution combines feature engineering on bureau accounts and enquiry history with gradient boosting models and cross-validation to build a robust binary classification pipeline.
+Rather than focusing only on training different models, this project was approached as an end-to-end machine learning workflow. It involved understanding the data, engineering behavioural credit features, validating assumptions through EDA, experimenting with multiple models, and iteratively improving performance by removing noisy features instead of continuously adding new ones.
 
 **Evaluation Metric**
 
@@ -14,74 +14,105 @@ ROC-AUC
 
 ## Dataset
 
-The assessment consists of three primary data sources:
+The assessment consisted of three primary data sources:
 
 - Previous credit accounts
 - Credit enquiry history
 - Loan contract information
 
-No demographic or income information was provided.
+No demographic, employment, or income information was available, so the entire model relies on historical credit behaviour.
 
 ---
 
-## Pipeline
+## Project Workflow
 
-1. Load and flatten raw JSON bureau data
-2. Feature engineering from account history
-3. Feature engineering from enquiry history
-4. Exploratory data analysis
-5. Logistic Regression baseline
-6. Feature selection using Mutual Information
-7. XGBoost modelling
-8. CatBoost modelling
-9. Feature pruning
-10. Stratified 5-Fold Cross Validation
-11. Final model retrained on the complete training data
-12. Submission generation
+1. Load and flatten nested JSON bureau data
+2. Engineer account-level behavioural features
+3. Engineer enquiry-level behavioural features
+4. Perform exploratory data analysis
+5. Train Logistic Regression baseline
+6. Train XGBoost and CatBoost models
+7. Analyze feature importance and model behaviour
+8. Remove weak and noisy features
+9. Retrain models on the pruned feature set
+10. Perform Stratified 5-Fold Cross Validation
+11. Retrain the best-performing model on the complete training dataset
+12. Generate final submission
+
+---
+
+# Model Development Journey
+
+One of the most interesting parts of this assignment was that the first solution was **not** the best solution.
+
+Initially, I engineered a large number of features from both account history and enquiry history. This included payment history statistics, DPD-based features, enquiry counts, loan behaviour metrics, ratios, interaction features, and several handcrafted behavioural signals. While this produced a comprehensive feature set, the validation ROC-AUC quickly plateaued.
+
+Instead of continuing to add more features, I stepped back and investigated what the models were actually learning.
+
+I repeatedly inspected feature importance, analysed individual feature behaviour, validated assumptions through EDA, and compared model performance after every significant change.
+
+This iterative process revealed something unexpected:
+
+> **Using fewer but more informative features consistently produced better validation performance than using every engineered feature.**
+
+Several payment-history features that initially appeared important contributed very little predictive power, whereas behavioural signals such as enquiry recency, loan closure behaviour, current overdue information, and credit portfolio characteristics proved much more informative.
+
+After multiple rounds of experimentation, feature pruning, retraining, and validation, the final feature set achieved better generalisation than the original larger feature set.
+
+This project reinforced an important lesson:
+
+**Better features are often more valuable than more features.**
 
 ---
 
 ## Feature Engineering
 
-Examples of engineered features include:
+The final feature set includes behavioural credit features such as:
 
-- Loan counts
+- Total loan count
 - Active vs closed loans
 - Closed loan ratio
-- Credit utilisation patterns
-- Current overdue amounts
+- Current overdue exposure
+- Credit type diversity
 - Enquiry recency
 - Enquiry frequency
-- Credit type diversity
 - Behavioural ratios
+- Credit portfolio statistics
 - Log-transformed monetary features
+
+Several additional engineered features were explored during experimentation but were removed after validation because they added noise without improving model performance.
 
 ---
 
-## Models
+## Models Evaluated
 
 ### Logistic Regression
 
-Used as the baseline model.
+- Baseline model
+- Used to establish an initial benchmark
 
 ### XGBoost
 
 - Early stopping
 - Class imbalance handling
 - Hyperparameter tuning
+- Stratified 5-fold Cross Validation
 
 ### CatBoost
 
 - Ordered boosting
 - Native categorical handling
 - Early stopping
+- Stratified 5-fold Cross Validation
 - Final selected model
 
 ---
 
-## Validation
+## Validation Strategy
 
-Stratified 5-Fold Cross Validation was performed to obtain a more reliable estimate of model performance than a single train-validation split.
+Performance was evaluated using both a train-validation split and Stratified 5-Fold Cross Validation.
+
+The cross-validation results provided a much more reliable estimate of generalisation performance and were used to compare the final candidate models before retraining on the complete training dataset.
 
 ---
 
@@ -89,11 +120,11 @@ Stratified 5-Fold Cross Validation was performed to obtain a more reliable estim
 
 | Model | ROC-AUC |
 |--------|--------:|
-| Logistic Regression | ~0.67 |
+| Logistic Regression (Baseline) | ~0.67 |
 | XGBoost | ~0.68 |
 | CatBoost | ~0.68 |
 
-CatBoost achieved the best cross-validation performance and was selected as the final model.
+CatBoost produced the most consistent cross-validation performance and was selected as the final model for submission.
 
 ---
 
@@ -115,7 +146,7 @@ monsoon-credit-default-prediction/
 
 ---
 
-## Technologies
+## Technologies Used
 
 - Python
 - Pandas
@@ -129,10 +160,11 @@ monsoon-credit-default-prediction/
 
 ## Key Learnings
 
-- Behavioural credit signals were more predictive than historical DPD values.
-- Feature pruning improved generalization.
-- Cross-validation provided a more reliable estimate of model performance.
-- CatBoost achieved the best overall validation performance.
+- Behavioural credit signals were significantly more predictive than many historical payment-history statistics.
+- More engineered features did not necessarily improve model performance.
+- Iterative feature pruning improved validation ROC-AUC by reducing noise and overfitting.
+- Cross-validation provided a more reliable estimate of model performance than relying on a single validation split.
+- Careful feature analysis and model diagnostics proved more valuable than simply increasing model complexity.
 
 ---
 
@@ -140,6 +172,5 @@ monsoon-credit-default-prediction/
 
 **Shivansh Mishra**
 
-GitHub:
-
+GitHub:  
 https://github.com/Shivanshhh2510
